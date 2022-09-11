@@ -1,0 +1,97 @@
+Select v.title,v.videoPath,pt.name,c.cardNumber ,p.* From Promote P
+Inner Join Video v on v.id = p.videoid
+Inner Join PROMOTETYPE pt on pt.id = p.PROMOTETYPEID
+Inner Join VISACARD c on c.id = p.cardId;
+
+
+
+
+
+CREATE OR REPLACE PACKAGE  Admin_PACKAGE AS
+
+    PROCEDURE GetSelaesPromote;
+    PROCEDURE GetGenderCount;
+    PROCEDURE GetAllVideoCountInMonth(tablename in varchar,cloname in varchar,p_year in varchar);
+    PROCEDURE GetAlltableCountRow(tablename in varchar,cloname in varchar);
+    PROCEDURE GetTopFiveFollowerdUser;
+    PROCEDURE GetTopFivelikevideo;
+    PROCEDURE GetAllPromoteInner;
+    
+End Admin_PACKAGE;
+
+
+
+CREATE OR REPLACE PACKAGE BODY Admin_PACKAGE AS
+    
+    PROCEDURE GetSelaesPromote IS
+        all_seales SYS_REFCURSOR;
+    begin
+        OPEN all_seales FOR SELECT TO_CHAR(pr.createat , 'yyyy') Years,SUM(pr.amount) AS COUNTSEALES FROM PROMOTE pr
+                        GROUP BY TO_CHAR(pr.createat , 'yyyy')
+                        ORDER BY TO_CHAR(pr.createat , 'yyyy') Asc;
+            dbms_sql.return_result(all_seales);
+    end GetSelaesPromote;
+    
+    PROCEDURE GetGenderCount IS
+        all_gender SYS_REFCURSOR;
+    begin
+        OPEN all_gender FOR SELECT g.name , count(g.name) as Count FROM USER1 u
+                        INNER JOIN gender g on g.id = u.genderid 
+                        GROUP by g.name;
+            dbms_sql.return_result(all_gender);
+    end GetGenderCount;
+    
+    PROCEDURE GetAllVideoCountInMonth(tablename in varchar,cloname in varchar,p_year in varchar) IS
+        all_countperMonth SYS_REFCURSOR;
+    BEGIN
+        OPEN all_countperMonth FOR ' SELECT To_Char('||cloname||' ,' || '''mm''' ||') as month1 ,count(To_Char('||cloname||' ,'||'''mm'''||')) as "COUNT"  FROM '|| tablename ||'       
+        Where TO_CHAR('||cloname||' , '||'''yyyy'''||') = '|| p_year ||'
+        GROUP BY To_Char('||cloname||' ,'||'''mm'''||')
+        order by To_Char('||cloname||' ,'||'''mm'''||') ASC';
+        dbms_sql.return_result(all_countperMonth);
+    END;
+
+    PROCEDURE GetAlltableCountRow(tablename in varchar,cloname in varchar) IS
+        count_row SYS_REFCURSOR;
+    BEGIN
+        OPEN count_row FOR 'select '''|| tablename ||''' as Name ,Count('|| cloname ||') as countRow from '||tablename||'';
+        dbms_sql.return_result(count_row);
+    END;
+
+    PROCEDURE GetTopFiveFollowerdUser IS
+        count_follower SYS_REFCURSOR;
+    BEGIN
+        open count_follower FOR SELECT u.fullname,u.imagepath , count(u.fullname) as count FROM USER1 u
+                                INNER JOIN FOLLOWER f ON f.userid= u.id
+                                where u.isblock =0
+                                GROUP BY u.fullname,u.imagepath
+                                order by count DESC
+                                FETCH FIRST 5 ROWS ONLY;
+        dbms_sql.return_result(count_follower);
+    END GetTopFiveFollowerdUser;
+  
+    PROCEDURE GetTopFivelikevideo IS
+        count_likevideo SYS_REFCURSOR;
+    BEGIN
+        open count_likevideo FOR SELECT v.posterpath,v.title, count(v.title) as count FROM like1 l
+                            INNER JOIN video v ON v.id= l.VIDEOID
+                            where v.isblock =0
+                            GROUP BY v.posterpath,v.title 
+                            order by count DESC
+                            FETCH FIRST 5 ROWS ONLY;
+        dbms_sql.return_result(count_likevideo);
+    END GetTopFivelikevideo;  
+    
+    PROCEDURE GetAllPromoteInner IS
+        promot_All SYS_REFCURSOR;
+        
+    BEGIN
+        open promot_All FOR Select v.title,v.videoPath,pt.name,c.cardNumber ,p.* From Promote P
+                                Inner Join Video v on v.id = p.videoid
+                                Inner Join PROMOTETYPE pt on pt.id = p.PROMOTETYPEID
+                                Inner Join VISACARD c on c.id = p.cardId;
+        dbms_sql.return_result(promot_All);
+    END GetAllPromoteInner;  
+END Admin_PACKAGE;
+
+

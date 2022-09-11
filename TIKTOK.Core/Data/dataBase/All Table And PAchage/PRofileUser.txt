@@ -1,0 +1,109 @@
+
+
+CREATE OR REPLACE PACKAGE  UserProfile_PACKAGE AS
+
+    PROCEDURE GetAllFollwerBlock(p_user_id in number);
+    PROCEDURE GetAllFollwingBlock(p_user_id in number);
+    PROCEDURE GetAllUserCountStatistic(p_user_id in number);
+    PROCEDURE GetAllVideoLikeReplayCount(p_user_id in number);
+    /* PROMOTION */
+    PROCEDURE GetVisaCardCountSumSaeles(p_user_id in number);
+    PROCEDURE GetVisaCardByUser(p_user_id in number);
+    PROCEDURE GetAllPromotVideoByUser(p_user_id in number);
+
+    
+
+    
+End UserProfile_PACKAGE;
+
+
+
+CREATE OR REPLACE PACKAGE BODY UserProfile_PACKAGE AS
+    
+    PROCEDURE GetAllFollwerBlock(p_user_id in number) IS
+        follow_all SYS_REFCURSOR;
+    begin
+        OPEN follow_all FOR SElect U.USERNAME,u.imagepath,f.* , 
+                        (select 1 as isfollwed from follower fo Where fo.userid = f.followed and fo.followed = f.userid ) as Followback ,
+                        (select b.id as blockedUser from Block1 b Where (b.userid = f.followed and b.BLOCK1USER = f.userid) Or (b.userid = f.userid and b.BLOCK1USER = f.followed) ) as blockedUser 
+                        FRom Follower f
+                        INNER JOIN USER1 U ON U.ID =F.FOLLOWED
+                        Where f.userid=p_user_id  ;
+        dbms_sql.return_result(follow_all); 
+    end GetAllFollwerBlock;
+    
+    PROCEDURE GetAllFollwingBlock(p_user_id in number) IS
+        follow_all SYS_REFCURSOR;
+    begin
+        OPEN follow_all FOR SElect U.USERNAME,u.imagepath,f.* , 
+            (select 1 as isfollwed from follower fo Where fo.userid = f.followed and fo.followed = f.userid ) as Followback ,
+            (select b.id as blockedUser from Block1 b Where (b.userid = f.followed and b.BLOCK1USER = f.userid) Or (b.userid = f.userid and b.BLOCK1USER = f.followed) ) as blockedUser 
+            FRom Follower f
+            INNER JOIN USER1 U ON U.ID =F.USERID
+            Where f.FOLLOWED= p_user_id ;
+         dbms_sql.return_result(follow_all); 
+    end GetAllFollwingBlock;
+    
+    PROCEDURE GetAllUserCountStatistic(p_user_id in number) IS
+        follow_all SYS_REFCURSOR;
+    begin
+        OPEN follow_all FOR SELECT u.*,
+        (SELECT COUNT(ID) FROM follower WHERE USERID= U.ID) AS countFOLLOWER,
+        (SELECT COUNT(ID) FROM follower WHERE FOLLOWED= U.ID) AS countFOLLOWING,
+        (SELECT COUNT(ID) FROM VIDEO WHERE USERID= U.ID) AS countVIDEOS,
+        (SELECT COUNT(ID) FROM VISACARD WHERE USERID= U.ID) AS countVISACARD,
+        (SELECT COUNT(ID) FROM REPLAY WHERE USERID= U.ID) AS countREPLAY,
+        (SELECT SUM((SELECT COUNT(L.ID) FROM LIKE1 L WHERE L.VIDEOID=V.ID)) AS LIKETAKE FROM VIDEO V  INNER JOIN USER1 UR ON UR.ID=V.USERID 
+        WHERE UR.ID=U.ID) AS countLIKETAKE
+        FROM USER1 U WHERE ID=p_user_id;
+         dbms_sql.return_result(follow_all); 
+    end GetAllUserCountStatistic;
+
+    PROCEDURE GetAllVideoLikeReplayCount(p_user_id in number) IS
+        video_all SYS_REFCURSOR;
+    begin
+        OPEN video_all FOR Select u.userName,u.imagepath,v.*,
+                (Select count(l.id) From Like1 l Where l.VIDEOID=v.id) as countLike,
+                (Select count(r.id) From replay r Where r.VIDEOID=v.id) as countReplay From Video v
+                inner join User1 u on  u.id =v.userid
+                where u.id=p_user_id;
+         dbms_sql.return_result(video_all); 
+    end GetAllVideoLikeReplayCount;
+ 
+ 
+    PROCEDURE GetVisaCardCountSumSaeles(p_user_id in number) IS
+        visa_all SYS_REFCURSOR;
+    begin
+        OPEN visa_all FOR select V.*,
+                        (Select Count(p.id) From Promote p Where p.CARDID=v.id ) as countSeales,
+                        (Select sum(pR.AMOUNT) From Promote pR 
+                        INNER JOIN VISACARD VC ON PR.CARDID= VC.ID
+                        INNER JOIN USER1 U1 ON U1.ID= VC.USERID
+                        WHERE U1.ID=V.USERID ) as sumSeales from visaCard v
+                        where V.userId = p_user_id AND ROWNUM =1;
+         dbms_sql.return_result(visa_all); 
+    end GetVisaCardCountSumSaeles;  
+    
+    PROCEDURE GetVisaCardByUser(p_user_id in number) IS
+        visa_all SYS_REFCURSOR;
+    begin
+        OPEN visa_all FOR SELECT * FROM VISACARD WHERE USERID=p_user_id;
+
+         dbms_sql.return_result(visa_all); 
+    end GetVisaCardByUser;
+    
+    PROCEDURE GetAllPromotVideoByUser(p_user_id in number) IS
+        visa_all SYS_REFCURSOR;
+    begin
+        OPEN visa_all FOR Select PR.*,VD.POSTERPATH,VD.TITLE , VC.CARDNUMBER, U1.USERNAME,U1.IMAGEPATH ,PT.NAME From Promote pR
+                        INNER JOIN VISACARD VC ON PR.CARDID= VC.ID
+                        INNER JOIN PROMOTETYPE PT ON PR.PROMOTETYPEID= PT.ID
+                        INNER JOIN VIDEO VD ON VD.ID = PR.VIDEOID
+                        INNER JOIN USER1 U1 ON U1.ID= VC.USERID
+                        WHERE U1.ID=2 ;
+         dbms_sql.return_result(visa_all); 
+    end GetAllPromotVideoByUser;
+    
+END UserProfile_PACKAGE;
+
+

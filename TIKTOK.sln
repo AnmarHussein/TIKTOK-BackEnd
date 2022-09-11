@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TIKTOK", "TIKTOK\TIKTOK.csproj", "{DD30315E-DF1B-4D56-B1D6-725285E77CFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TIKTOK.Core", "TIKTOK.Core\TIKTOK.Core.csproj", "{164C68B0-3127-421A-964B-EFCFE936C6A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TIKTOK.Infra", "TIKTOK.Infra\TIKTOK.Infra.csproj", "{9723C8DD-87F7-4792-97CF-684E321D07C2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DD30315E-DF1B-4D56-B1D6-725285E77CFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD30315E-DF1B-4D56-B1D6-725285E77CFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD30315E-DF1B-4D56-B1D6-725285E77CFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD30315E-DF1B-4D56-B1D6-725285E77CFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{164C68B0-3127-421A-964B-EFCFE936C6A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{164C68B0-3127-421A-964B-EFCFE936C6A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{164C68B0-3127-421A-964B-EFCFE936C6A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{164C68B0-3127-421A-964B-EFCFE936C6A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9723C8DD-87F7-4792-97CF-684E321D07C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9723C8DD-87F7-4792-97CF-684E321D07C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9723C8DD-87F7-4792-97CF-684E321D07C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9723C8DD-87F7-4792-97CF-684E321D07C2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {24E2815A-40E5-429B-9060-3080D9D85891}
+	EndGlobalSection
+EndGlobal

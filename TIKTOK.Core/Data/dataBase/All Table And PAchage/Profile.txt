@@ -1,0 +1,130 @@
+
+
+CREATE OR REPLACE PACKAGE  PROFILE_PACKAGE AS
+
+    PROCEDURE GETALLFollowers(p_user_id in number);
+    PROCEDURE GETALLFollowing(p_user_id in number);
+    PROCEDURE GETALLVidoesToUser(p_user_id in number);
+    
+    /* All Block ANd Return Data InnerJoin, */
+    PROCEDURE BlockUserAdmin(p_user_id in number,p_isBlock in number);
+    PROCEDURE BlockVideoAdmin(p_video_id in number,p_isBlock in number);
+    PROCEDURE GetVideoToBlock(p_video_id in number);
+    
+    /*Get ALl Video Reply */
+    
+    PROCEDURE GetAllVideoAndCount(p_user_id in number);
+    PROCEDURE GetAllReplayVideo(p_video_id in number);
+    PROCEDURE GetAllLikeVideo(p_video_id in number);
+    PROCEDURE GetCountLikeVideo(p_video_id in number);
+    PROCEDURE GetCountReplayVideo(p_video_id in number);    
+
+End PROFILE_PACKAGE;
+
+
+
+CREATE OR REPLACE PACKAGE BODY PROFILE_PACKAGE AS
+    
+    PROCEDURE GETALLFollowers(p_user_id in number) 
+    IS
+        follower_all SYS_REFCURSOR;
+    Begin
+        OPEN follower_all FOR   SELECT u.username , u.imagepath ,u.id,u.email,f.createat FROM FOLLOWER F
+                                INNER JOIN USER1 U ON U.ID = f.followed
+                                WHERE F.userid = p_user_id and u.isblock = 0;
+        dbms_sql.return_result(follower_all);
+    End GETALLFollowers;
+    
+    PROCEDURE GETALLFollowing(p_user_id in number) 
+    IS
+        follower_all SYS_REFCURSOR;
+    Begin
+        OPEN follower_all FOR  SELECT u.username , u.imagepath ,u.id,u.email,f.createat FROM FOLLOWER F
+                                INNER JOIN USER1 U ON U.ID = f.userID
+                                WHERE F.followed = p_user_id and u.isblock = 0;
+        dbms_sql.return_result(follower_all);
+    End GETALLFollowing;  
+    
+    PROCEDURE GETALLVidoesToUser(p_user_id in number)
+    IS
+        vidoe_all SYS_REFCURSOR;
+    Begin
+        OPEN vidoe_all FOR  SELECT * FROM Video WHERE isblock = 0 and userid = p_user_id;
+        dbms_sql.return_result(vidoe_all);
+    End GETALLVidoesToUser;  
+
+    /* All Block ANd Return Data InnerJoin, */
+    PROCEDURE BlockUSerAdmin(p_user_id in number,p_isBlock in number) IS
+    Begin
+        Update USer1 SEt isblock =p_isBlock Where id =p_user_id;
+        commit;
+    End BlockUSerAdmin;
+    PROCEDURE BlockVideoAdmin(p_video_id in number,p_isBlock in number) IS
+    Begin
+        Update Video SEt isblock =  p_isBlock Where id =p_video_id;
+        commit;
+    End BlockVideoAdmin;
+
+    PROCEDURE GetAllReplayVideo(p_video_id in number) IS
+        replay_all SYS_REFCURSOR;
+    Begin
+        OPEN replay_all FOR Select u.userNAme ,u.imagepath as imageUserPath,r.* FRom Replay R
+            INNER JOIN USER1 U ON U.ID = r.userId
+            Where r.videoid = p_video_id 
+            order by  r.createAt DESC;
+        dbms_sql.return_result(replay_all);
+    End GetAllReplayVideo;
+    
+    PROCEDURE GetAllLikeVideo(p_video_id in number) IS
+        like_all SYS_REFCURSOR;
+    Begin
+        OPEN like_all FOR Select u.userNAme ,u.imagepath as imageUserPath,l.* FRom Like1 l
+            INNER JOIN USER1 U ON U.ID = l.userId
+            Where l.videoid = p_video_id 
+            order by  l.createAt DESC;
+        dbms_sql.return_result(like_all);
+    End GetAllLikeVideo;
+    
+    PROCEDURE GetCountLikeVideo(p_video_id in number) IS
+        like_all SYS_REFCURSOR;
+    Begin
+        OPEN like_all FOR Select 'Like' As NAme, Count(id) AS Count FRom Like1
+            Where videoid = p_video_id;
+        dbms_sql.return_result(like_all);
+    End GetCountLikeVideo;
+    
+    PROCEDURE GetCountReplayVideo(p_video_id in number) IS
+        like_all SYS_REFCURSOR;
+    Begin
+        OPEN like_all FOR Select 'Replay' As NAme, Count(id) AS Count FRom Replay
+            Where videoid = p_video_id;
+        dbms_sql.return_result(like_all);
+    End GetCountReplayVideo;
+    
+    PROCEDURE GetAllVideoAndCount(p_user_id in number) IS
+        video_all SYS_REFCURSOR;
+    Begin
+         OPEN video_all FOR select 
+            v.* ,
+            (SELECT Count(v.id) From LIKE1 l Where l.videoid = v.id  ) as countlike ,
+            (SELECT Count(v.id) From REPLAy r Where r.videoid = v.id  ) as countreplay ,
+            u.userName,
+            u.imagePath
+            FROM Video v
+            INNER JOIN USER1 U ON U.ID = v.userID
+            where u.id = p_user_id;
+
+        dbms_sql.return_result(video_all);
+    end GetAllVideoAndCount;
+    
+    PROCEDURE GetVideoToBlock(p_video_id in number) IS
+        video_all SYS_REFCURSOR;
+    Begin
+         OPEN video_all FOR Select u.username,u.email,v.* From Video v
+                            INNER Join USER1 u on u.id = v.userid
+                            Where v.id =p_video_id; 
+
+        dbms_sql.return_result(video_all);
+    end GetVideoToBlock;
+
+END PROFILE_PACKAGE;

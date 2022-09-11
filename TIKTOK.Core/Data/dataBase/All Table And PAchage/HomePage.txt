@@ -1,0 +1,128 @@
+
+create or replace PACKAGE  HomePage_PACKAGE AS
+
+    PROCEDURE GetHomePage;
+    PROCEDURE GetLik1;
+    PROCEDURE UpdateHomePage(p_id in number ,P_CAPTUR1 in varchar 
+    ,P_CAPTUR2 in varchar,P_CAPTUR3 in varchar,p_PARGRAF1 in varchar,
+    P_BUTTON1 in varchar ,p_PARGRAF2 in varchar ,p_COPYRIGTH in varchar ,
+    p_NAVLOGO in varchar,p_NAVBUTTON1 in varchar,p_NAVBUTTON2 in varchar) ;
+
+    PROCEDURE GetSuggestUser(p_user_id in number default 0);
+    
+    PROCEDURE GetAllVideoHome(p_user_id in number default 0);
+    
+    PROCEDURE GetAllLikeByVideo(p_video_id in number default 0);
+    
+    PROCEDURE DeletLike(p_user_id in number default 0 ,p_video_id in number default 0);
+    
+    PROCEDURE GetUserToPage(p_user_id in number default 0 ,p_curent_id in number default 0);
+    PROCEDURE GetVideoToPage(p_user_id in number default 0 ,p_curent_id in number default 0);
+    
+End HomePage_PACKAGE;
+
+
+create or replace PACKAGE BODY HomePage_PACKAGE AS
+   
+    PROCEDURE GetHomePage IS
+        home SYS_REFCURSOR;
+    Begin 
+        OPEN home FOR Select * From HomePAge Where ID = 1;
+        dbms_sql.return_result(home); 
+    End GetHomePage;
+    
+    PROCEDURE GetLik1 Is
+        home SYS_REFCURSOR;
+    Begin 
+        OPEN home FOR Select * From Link1 Where homeid = 1;
+        dbms_sql.return_result(home); 
+    End GetLik1;
+   
+    PROCEDURE GetSuggestUser(p_user_id in number default 0) IS
+      user_all SYS_REFCURSOR;
+    Begin
+        OPEN user_all FOR Select u.id,u.userNAme,u.imagepath,Count(u.id) as Count From User1 u 
+                            RIGHT Outer JOIN follower F ON F.USERID =U.ID
+                            WHERE U.ISBLOCK =0 AND U.ID NOT IN(SElect b.userid From Block1 b Where b.block1user=p_user_id ) AND U.ID NOT IN(SElect b.block1user From Block1 b Where b.userid=p_user_id)
+                            GROUP BY u.id,u.userNAme,u.imagepath
+                            order by count DESC
+                            FETCH FIRST 5 ROWS ONLY;
+        dbms_sql.return_result(user_all); 
+    End GetSuggestUser;
+    
+    PROCEDURE GetAllVideoHome(p_user_id in number default 0) IS
+      user_all SYS_REFCURSOR;
+    Begin
+        OPEN user_all FOR Select u.userName,u.imagepath,v.*,
+            (Select count(l.id) From Like1 l Where l.VIDEOID=v.id) as countLike,
+            (Select count(r.id) From replay r Where r.VIDEOID=v.id) as countReplay ,
+            (Select Count(f.id) From Follower f Where (f.followed= p_user_id and f.userid=u.id)) FollowBack,
+            (Select Count(l.id) From Like1 l Where (l.userid= p_user_id and l.videoid=v.id)) LikeInVideo
+            From Video v
+            inner join User1 u on  u.id =v.userid
+            WHERE u.id Not in p_user_id And v.isBlock=0 And  U.ISBLOCK =0 
+            AND U.ID NOT IN(SElect b.userid From Block1 b Where b.block1user=p_user_id )
+            And U.ID NOT IN(SElect b.block1user From Block1 b Where b.userid=p_user_id );
+        dbms_sql.return_result(user_all); 
+    End GetAllVideoHome;
+    
+    PROCEDURE GetAllLikeByVideo(p_video_id in number default 0) IS
+      user_all SYS_REFCURSOR;
+    Begin
+        OPEN user_all FOR Select * FRom Like1 Where Videoid =p_video_id;
+
+        dbms_sql.return_result(user_all); 
+    End GetAllLikeByVideo;
+    
+    PROCEDURE DeletLike(p_user_id in number default 0 ,p_video_id in number default 0)IS
+    BEgin
+        Delete From Like1 Where userid=p_user_id And videoid =p_video_id;
+        Commit;
+    End DeletLike;
+
+
+    PROCEDURE GetUserToPage(p_user_id in number default 0 ,p_curent_id in number default 0) IS
+        user_all SYS_REFCURSOR;
+    Begin
+        OPEN user_all FOR SELECT u.id,u.title,u.fullname,u.userName,u.imagePath,u.bDate,
+                        (SELECT COUNT(ID) FROM follower WHERE USERID= U.ID) AS countFOLLOWER,
+                        (SELECT COUNT(ID) FROM follower WHERE FOLLOWED= U.ID) AS countFOLLOWING,
+                        (SELECT COUNT(ID) FROM VIDEO WHERE USERID= U.ID) AS countVIDEOS,
+                        (SELECT SUM((SELECT COUNT(L.ID) FROM LIKE1 L WHERE L.VIDEOID=V.ID)) AS LIKETAKE FROM VIDEO V  INNER JOIN USER1 UR ON UR.ID=V.USERID 
+                        WHERE UR.ID=U.ID) AS countLIKETAKE,
+                        (Select Count(f.id) From Follower f Where (f.followed= p_curent_id and f.userid=u.id)) FollowBack
+                        FROM USER1 U WHERE ID=p_user_id And isBlock=0;
+        dbms_sql.return_result(user_all); 
+    End GetUserToPage;
+    
+    PROCEDURE GetVideoToPage(p_user_id in number default 0 ,p_curent_id in number default 0) IS
+        user_all SYS_REFCURSOR;
+    Begin
+        OPEN user_all FOR Select v.*,
+                        (Select count(l.id) From Like1 l Where l.VIDEOID=v.id) as countLike,
+                        (Select count(r.id) From replay r Where r.VIDEOID=v.id) as countReplay ,
+                        (Select Count(l.id) From Like1 l Where (l.userid= p_curent_id and l.videoid=v.id)) LikeInVideo
+                        From Video v
+                        inner join User1 u on  u.id =v.userid
+                        WHERE u.id = p_user_id And v.isBlock=0 And  U.ISBLOCK =0 
+                        AND U.ID NOT IN(SElect b.userid From Block1 b Where b.block1user=p_curent_id )
+                        And U.ID NOT IN(SElect b.block1user From Block1 b Where b.userid=p_curent_id );
+
+        dbms_sql.return_result(user_all); 
+    End GetVideoToPage;
+    
+    
+    PROCEDURE UpdateHomePage(p_id in number ,P_CAPTUR1 in varchar 
+    ,P_CAPTUR2 in varchar,P_CAPTUR3 in varchar,p_PARGRAF1 in varchar,
+    P_BUTTON1 in varchar ,p_PARGRAF2 in varchar ,p_COPYRIGTH in varchar ,
+    p_NAVLOGO in varchar,p_NAVBUTTON1 in varchar,p_NAVBUTTON2 in varchar) IS
+    
+    Begin 
+        Update HomePage Set CAPTUR1=P_CAPTUR1 ,CAPTUR2=P_CAPTUR2,CAPTUR3=P_CAPTUR3,
+        PARGRAF1 =p_PARGRAF1,BUTTON1=P_BUTTON1,PARGRAF2=p_PARGRAF2,COPYRIGTH = p_COPYRIGTH ,
+        NAVLOGO = p_NAVLOGO, NAVBUTTON1 =p_NAVBUTTON1,NAVBUTTON2=p_NAVBUTTON2
+        Where id = p_id;
+        Commit;
+    End UpdateHomePage;
+END HomePage_PACKAGE;
+

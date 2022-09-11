@@ -1,0 +1,38 @@
+
+CREATE OR REPLACE PACKAGE  AUTHUNTICATION_PACKAGE AS
+
+    PROCEDURE GetUserAuth(p_UserName in varchar , p_password in varchar);   
+    PROCEDURE ConfirmEmail(p_UserName in varchar);
+    PROCEDURE ForgetPassWord(p_email in varchar,p_PASSWORD in varchar);
+    
+
+    
+End AUTHUNTICATION_PACKAGE;
+
+
+
+CREATE OR REPLACE PACKAGE BODY AUTHUNTICATION_PACKAGE AS
+    
+    PROCEDURE GetUserAuth(p_UserName in varchar , p_password in varchar) 
+    IS
+        auth_all SYS_REFCURSOR;
+    Begin
+        OPEN auth_all FOR   SELECT U.userName,u.imagePath,u.id,u.email,r.name as RoleName,u.confirmemail FROM USER1 u
+                                INNER JOIN Role r ON r.ID = u.roleid
+                                WHERE u.userName = p_UserName and u.password = p_password and u.isblock = 0;
+        dbms_sql.return_result(auth_all);
+    End GetUserAuth;
+    
+    PROCEDURE ConfirmEmail(p_UserName in varchar) IS
+    Begin
+        Update User1 Set CONFIRMEMAIL = 1 Where UserName =p_UserName; 
+        Commit;
+    End ConfirmEmail;
+    PROCEDURE ForgetPassWord(p_email in varchar,p_PASSWORD in varchar) Is
+    Begin
+        Update User1 Set PASSWORD = p_PASSWORD Where EMAIL =p_email; 
+        Commit;
+    End ForgetPassWord;
+
+END AUTHUNTICATION_PACKAGE;
+
