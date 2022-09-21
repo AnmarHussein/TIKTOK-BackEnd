@@ -45,6 +45,7 @@ namespace TIKTOK
             services.AddScoped< IProfileUserRepoisitory, ProfileUserRepoisitory>();
             services.AddScoped<IHomePageRepoisitory, HomePageRepoisitory>();
             services.AddScoped<IContactUsRepoisitory, ContactUsRepoisitory>();
+            services.AddScoped<ILiveRepoisitory, LiveRepoisitory>();
 
 
             // Add Serveis Scoped
@@ -56,6 +57,7 @@ namespace TIKTOK
             services.AddScoped< IHomePageService, HomePageService>();
             services.AddScoped< IContactUsService, ContactUsServicecs>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<ILiveService, LiveService>();
 
 
             //JWT
